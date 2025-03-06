@@ -17,5 +17,8 @@ jobs:
           NOIP_PASSWORD: ${{ secrets.NOIP_PASSWORD }}
           NOIP_TOTP_SECRET: ${{ secrets.NOIP_TOTP_SECRET }}
         run: |
-          docker run --rm kirbah/noip-renew:latest \
-              -u "$NOIP_USERNAME" -p "$NOIP_PASSWORD" -s "$NOIP_TOTP_SECRET"
+          # Ensure the screenshots directory exists
+          mkdir -p ${{ github.workspace }}/screenshots
+          docker run --rm -v ${{ github.workspace }}/screenshots:/app/screenshots kirbah/noip-renew:latest \
+            -u "$NOIP_USERNAME" -p "$NOIP_PASSWORD" -s "$NOIP_TOTP_SECRET" -d DEBUG
+
