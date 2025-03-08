@@ -73,7 +73,8 @@ class Robot:
         try:
             ele_pwd.send_keys(self.password)
         except Exception as e:
-            logger.error(f"An error has occurred while inserting the password: {e}")
+            logger.error(
+                f"An error has occurred while inserting the password: {e}")
             raise Exception("Failed while inserting the password")
 
         try:
@@ -97,7 +98,8 @@ class Robot:
             raise Exception("Failed while trying to logging in")
 
         try:
-            self.browser.find_element(By.XPATH, "//input[@value='Verify']").click()
+            self.browser.find_element(
+                By.XPATH, "//input[@value='Verify']").click()
         except Exception as e:
             logger.error(f"Error while verifying 6-digit OTP code: {e}")
             raise Exception("Failed while trying to logging in")
@@ -124,7 +126,8 @@ class Robot:
             expiration_days = self.get_host_expiration_days(host)
             logger.info(f"expiration days: {expiration_days}")
             if expiration_days < 7:
-                logger.info(f"Host {host_name} is about to expire, confirming host..")
+                logger.info(
+                    f"Host {host_name} is about to expire, confirming host..")
                 host_button = self.get_host_button(host)
                 self.update_host(host_button, host_name)
                 logger.info(f"Host confirmed: {host_name}")
@@ -132,7 +135,8 @@ class Robot:
                 logger.info(
                     f"Host {host_name} is yet not due, remaining days to expire: {expiration_days}"
                 )
-            self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/{host_name}-results.png")
+            self.browser.save_screenshot(
+                f"{SCREENSHOTS_PATH}/{host_name}-results.png")
 
     def update_host(self, host_button, host_name):
         logger.info(f"Updating {host_name}")
@@ -141,7 +145,8 @@ class Robot:
         intervention = False
         try:
             intervention = (
-                self.browser.find_element(By.XPATH, "//h2[@class='big']")[0].text
+                self.browser.find_element(
+                    By.XPATH, "//h2[@class='big']")[0].text
                 == "Upgrade Now"
             )
         except Exception as e:
@@ -149,8 +154,10 @@ class Robot:
             pass
 
         if intervention:
-            raise Exception("Manual intervention required. Upgrade text detected.")
-        self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/{host_name}_success.png")
+            raise Exception(
+                "Manual intervention required. Upgrade text detected.")
+        self.browser.save_screenshot(
+            f"{SCREENSHOTS_PATH}/{host_name}_success.png")
 
     @staticmethod
     def get_host_expiration_days(host):
@@ -165,13 +172,14 @@ class Robot:
             return 0
         regex_match = re.search("\\d+", host_remaining_days)
         if regex_match is None:
-            raise Exception("Expiration days label does not match the expected pattern")
+            raise Exception(
+                "Expiration days label does not match the expected pattern")
         expiration_days = int(regex_match.group(0))
         return expiration_days
 
     @staticmethod
     def get_host_link(host):
-        return host.find_element(By.XPATH, ".//a[@class='link-info cursor-pointer']")
+        return host.find_element(By.XPATH, ".//a[contains(@class, 'link-info') and contains(@class, 'cursor-pointer')]")
 
     @staticmethod
     def get_host_button(host):
@@ -180,7 +188,8 @@ class Robot:
         )
 
     def get_hosts(self) -> list:
-        host_tds = self.browser.find_elements(By.XPATH, '//td[@data-title="Host"]')
+        host_tds = self.browser.find_elements(
+            By.XPATH, '//td[@data-title="Host"]')
         if len(host_tds) == 0:
             raise Exception("No hosts or host table rows not found")
         return host_tds
@@ -208,7 +217,8 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--password", required=True)
     parser.add_argument("-s", "--totp-secret", required=True)
     parser.add_argument("-t", "--https-proxy", required=False)
-    parser.add_argument("-d", "--debug", type=bool, default=False, required=False)
+    parser.add_argument("-d", "--debug", type=bool,
+                        default=False, required=False)
     args = vars(parser.parse_args())
 
     # Set debug level
