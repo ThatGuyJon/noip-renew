@@ -3,8 +3,8 @@ name: No-IP Auto Renew
 on:
   schedule:
     # Runs every Sunday at 11:35 UTC
-    - cron: '35 11 * * 0'
-  workflow_dispatch:  # Enables manual triggering from the Actions tab
+    - cron: "35 11 * * 0"
+  workflow_dispatch: # Enables manual triggering from the Actions tab
 
 jobs:
   renew:
@@ -20,5 +20,4 @@ jobs:
           # Ensure the screenshots directory exists
           mkdir -p ${{ github.workspace }}/screenshots
           docker run --rm -v ${{ github.workspace }}/screenshots:/app/screenshots kirbah/noip-renew:latest \
-            -u "$NOIP_USERNAME" -p "$NOIP_PASSWORD" -s "$NOIP_TOTP_SECRET" -d DEBUG
-
+            -u "$NOIP_USERNAME" -p "$NOIP_PASSWORD" -s "$NOIP_TOTP_SECRET"
