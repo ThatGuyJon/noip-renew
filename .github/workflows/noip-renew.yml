@@ -20,4 +20,4 @@ jobs:
           # Ensure the screenshots directory exists
           mkdir -p ${{ github.workspace }}/screenshots
           docker run --rm -v ${{ github.workspace }}/screenshots:/app/screenshots kirbah/noip-renew:latest \
-            -u "$NOIP_USERNAME" -p "$NOIP_PASSWORD" -s "$NOIP_TOTP_SECRET"
+            -u "$NOIP_USERNAME" -p "$NOIP_PASSWORD" -s "$NOIP_TOTP_SECRET" -d DEBUG
