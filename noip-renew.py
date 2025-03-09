@@ -194,6 +194,8 @@ class NoIPUpdater:
         host_tds = self.browser.find_elements(
             By.XPATH, '//td[@data-title="Host"]')
         if len(host_tds) == 0:
+            with open(f"{SCREENSHOTS_PATH}/page.html", "w") as f:
+                f.write(self.browser.page_source)
             raise Exception("No hosts or host table rows not found")
         return host_tds
 
