@@ -2,7 +2,7 @@
 
 [noip.com](https://www.noip.com/) free hosts expire every month (every 30 days to be exact). This script checks the website to renew the hosts, using Python/Selenium with Chrome headless mode.
 
-Based originally on [noip-renew](https://github.com/loblab/noip-renew) and made some minor improvements (improved logging, adding type hints, improved documentation).
+Based originally on [noip-renew](https://github.com/loblab/noip-renew) and made some minor improvements.
 
 ## GitHub Actions Workflow
 
