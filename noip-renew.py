@@ -4,13 +4,14 @@ import re
 import time
 from sys import stdout
 
-from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, TimeoutException
-
 import pyotp
-from constants import HOST_URL, LOGIN_URL, SCREENSHOTS_PATH, USER_AGENT
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import (NoSuchElementException,
+                                        ElementNotInteractableException,
+                                        TimeoutException)
 from selenium.webdriver.common.by import By
+
+from constants import HOST_URL, LOGIN_URL, SCREENSHOTS_PATH, USER_AGENT
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -43,11 +44,12 @@ class NoIPUpdater:
         # Setup browser options
         logger.debug("Initializing browser...")
         options = webdriver.ChromeOptions()
+        # Avoids shared memory issues
         options.add_argument("disable-features=VizDisplayCompositor")
-        options.add_argument("headless")
-        options.add_argument("no-sandbox")
-        options.add_argument("window-size=1200x800")
-        options.add_argument(f"user-agent={USER_AGENT}")
+        options.add_argument("headless")  # Run in headless mode
+        options.add_argument("no-sandbox")  # Bypass OS security model
+        options.add_argument("window-size=1200x800")  # Set window size
+        options.add_argument(f"user-agent={USER_AGENT}")  # Set user agent
         if self.https_proxy:
             options.add_argument("proxy-server=" + self.https_proxy)
         browser = webdriver.Chrome(options=options)
