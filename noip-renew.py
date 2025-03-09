@@ -70,6 +70,9 @@ class NoIPUpdater:
     def _solve_captcha(self):
         logger.info("Solving captcha...")
         try:
+            if logger.level == logging.DEBUG:
+                self.browser.save_screenshot(
+                    f"{SCREENSHOTS_PATH}/captcha_screen.png")
             self.browser.find_element(By.ID, "clogs-captcha-button").click()
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(f"Error clicking captcha button: {e}")
@@ -77,6 +80,8 @@ class NoIPUpdater:
 
     def _fill_otp(self):
         logger.info("Filling OTP...")
+        if logger.level == logging.DEBUG:
+            self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/otp_screen.png")
         otp = pyotp.TOTP(self.totp_secret).now()
         try:
             for pos in range(OTP_LENGTH):
