@@ -1,13 +1,10 @@
-FROM python:3.12-alpine
+FROM python:3.13-alpine
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN apk update && \
-    apk upgrade --no-cache && \
-    apk add --no-cache chromium chromium-chromedriver && \
-    rm -rf /var/cache/apk/* && \
+RUN apk add --no-cache chromium chromium-chromedriver && \
     pip3 install --no-cache-dir -r requirements.txt
 
 COPY noip-renew.py constants.py .
