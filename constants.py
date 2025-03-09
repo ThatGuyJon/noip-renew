@@ -4,3 +4,4 @@ USER_AGENT = (
 LOGIN_URL = "https://www.noip.com/login"
 HOST_URL = "https://my.noip.com/dynamic-dns"
 SCREENSHOTS_PATH = "screenshots"
+OTP_LENGTH = 6

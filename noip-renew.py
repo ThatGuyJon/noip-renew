@@ -11,7 +11,7 @@ from selenium.common.exceptions import (NoSuchElementException,
                                         TimeoutException)
 from selenium.webdriver.common.by import By
 
-from constants import HOST_URL, LOGIN_URL, SCREENSHOTS_PATH, USER_AGENT
+from constants import HOST_URL, LOGIN_URL, SCREENSHOTS_PATH, USER_AGENT, OTP_LENGTH
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -22,8 +22,6 @@ logFormatter = logging.Formatter(
 consoleHandler = logging.StreamHandler(stdout)
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
-
-OTP_LENGTH = 6
 
 
 class NoIPUpdater:
