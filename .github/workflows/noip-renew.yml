@@ -2,8 +2,8 @@ name: No-IP Auto Renew
 
 on:
   schedule:
-    # Runs every Sunday at 11:35 UTC
-    - cron: "35 11 * * 0"
+    # Runs every Saturday at 09:35 UTC
+    - cron: "35 9 * * 6"
   workflow_dispatch: # Enables manual triggering from the Actions tab
 
 jobs:
