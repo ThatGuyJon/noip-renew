@@ -101,7 +101,7 @@ class NoIPUpdater:
             raise Exception(f"Failed while verifying OTP: {e}")
 
     def login(self):
-        logger.info(f"Opening {LOGIN_URL}...")
+        logger.info(f"Opening {LOGIN_URL} ...")
         self.browser.get(LOGIN_URL)
         if logger.level == logging.DEBUG:
             self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/debug1.png")
@@ -116,7 +116,7 @@ class NoIPUpdater:
             self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/debug2.png")
 
     def open_hosts_page(self):
-        logger.info(f"Opening {HOST_URL}...")
+        logger.info(f"Opening {HOST_URL} ...")
         try:
             self.browser.get(HOST_URL)
         except TimeoutException as e:
@@ -125,7 +125,7 @@ class NoIPUpdater:
 
     def update_hosts(self):
         self.open_hosts_page()
-        time.sleep(1)
+        time.sleep(3)
 
         hosts = self.get_hosts()
         for host in hosts:
