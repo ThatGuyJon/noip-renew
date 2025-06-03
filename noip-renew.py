@@ -66,7 +66,7 @@ class NoIPUpdater:
             logger.error(
                 f"Error filling credentials: {e}, element: {ele_usr or ele_pwd}")
             raise Exception(f"Failed while inserting credentials: {e}")
-
+'''
     def _solve_captcha(self):
         logger.info("Solving captcha...")
         try:
@@ -77,7 +77,7 @@ class NoIPUpdater:
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(f"Error clicking captcha button: {e}")
             raise Exception(f"Failed while trying to solve captcha: {e}")
-
+'''
     def _fill_otp(self):
         logger.info("Filling OTP...")
         if logger.level == logging.DEBUG:
