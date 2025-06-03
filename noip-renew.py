@@ -8,8 +8,11 @@ import pyotp
 from selenium import webdriver
 from selenium.common.exceptions import (NoSuchElementException,
                                         ElementNotInteractableException,
-                                        TimeoutException)
+                                        TimeoutException,
+                                        ElementClickInterceptedException)
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from constants import HOST_URL, LOGIN_URL, SCREENSHOTS_PATH, USER_AGENT, OTP_LENGTH
 
@@ -37,17 +40,16 @@ class NoIPUpdater:
         self.totp_secret = totp_secret
         self.https_proxy = https_proxy
         self.browser = self._init_browser()
+        self.wait = WebDriverWait(self.browser, 20)
 
     def _init_browser(self, page_load_timeout: int = 90):
-        # Setup browser options
         logger.debug("Initializing browser...")
         options = webdriver.ChromeOptions()
-        # Avoids shared memory issues
         options.add_argument("disable-features=VizDisplayCompositor")
-        options.add_argument("headless")  # Run in headless mode
-        options.add_argument("no-sandbox")  # Bypass OS security model
-        options.add_argument("window-size=1200x800")  # Set window size
-        options.add_argument(f"user-agent={USER_AGENT}")  # Set user agent
+        options.add_argument("headless")
+        options.add_argument("no-sandbox")
+        options.add_argument("window-size=1200x800")
+        options.add_argument(f"user-agent={USER_AGENT}")
         if self.https_proxy:
             options.add_argument("proxy-server=" + self.https_proxy)
         browser = webdriver.Chrome(options=options)
@@ -55,27 +57,36 @@ class NoIPUpdater:
         browser.set_page_load_timeout(page_load_timeout)
         return browser
 
+    def _scroll_into_view_and_click(self, element):
+        self.browser.execute_script("arguments[0].scrollIntoView(true);", element)
+        time.sleep(0.3)  # let scroll happen smoothly
+        try:
+            element.click()
+        except ElementClickInterceptedException:
+            logger.warning("Click intercepted, trying JavaScript click as fallback")
+            self.browser.execute_script("arguments[0].click();", element)
+
     def _fill_credentials(self):
         logger.info("Filling username and password...")
-        ele_usr = self.browser.find_element("name", "username")
-        ele_pwd = self.browser.find_element("name", "password")
+        ele_usr = self.wait.until(EC.presence_of_element_located((By.NAME, "username")))
+        ele_pwd = self.wait.until(EC.presence_of_element_located((By.NAME, "password")))
         try:
             ele_usr.send_keys(self.username)
             ele_pwd.send_keys(self.password)
-            self.browser.find_element(By.XPATH, "//*[@id='clogs-captcha-button']").click()
-        except (NoSuchElementException, ElementNotInteractableException) as e:
-            logger.error(
-                f"Error filling credentials: {e}, element: {ele_usr or ele_pwd}")
+            captcha_button = self.wait.until(EC.element_to_be_clickable((By.ID, "clogs-captcha-button")))
+            self._scroll_into_view_and_click(captcha_button)
+        except (NoSuchElementException, ElementNotInteractableException, TimeoutException) as e:
+            logger.error(f"Error filling credentials: {e}, elements: {ele_usr} {ele_pwd}")
             raise Exception(f"Failed while inserting credentials: {e}")
 
     def _solve_captcha(self):
         logger.info("Solving captcha...")
         try:
             if logger.level == logging.DEBUG:
-                self.browser.save_screenshot(
-                    f"{SCREENSHOTS_PATH}/captcha_screen.png")
-            self.browser.find_element(By.ID, "clogs-captcha-button").click()
-        except (NoSuchElementException, ElementNotInteractableException) as e:
+                self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/captcha_screen.png")
+            captcha_button = self.wait.until(EC.element_to_be_clickable((By.ID, "clogs-captcha-button")))
+            self._scroll_into_view_and_click(captcha_button)
+        except (NoSuchElementException, ElementNotInteractableException, TimeoutException) as e:
             logger.error(f"Error clicking captcha button: {e}")
             raise Exception(f"Failed while trying to solve captcha: {e}")
 
@@ -86,17 +97,16 @@ class NoIPUpdater:
         otp = pyotp.TOTP(self.totp_secret).now()
         try:
             for pos in range(OTP_LENGTH):
-                otp_elem = self.browser.find_element(
-                    By.XPATH,
-                    '//*[@id="totp-input"]/input[' + str(pos + 1) + ']'  # Corrected XPath
-                )
+                otp_elem = self.wait.until(EC.presence_of_element_located(
+                    (By.XPATH, f'//*[@id="totp-input"]/input[{pos + 1}]')))
                 otp_elem.send_keys(otp[pos])
-        except (NoSuchElementException, ElementNotInteractableException) as e:
+        except (NoSuchElementException, ElementNotInteractableException, TimeoutException) as e:
             logger.error(f"Error filling OTP code: {e}, position: {pos}")
             raise Exception(f"Failed while filling OTP: {e}")
         try:
-            self.browser.find_element(By.XPATH, "//input[@value='Verify']").click()
-        except (NoSuchElementException, ElementNotInteractableException) as e:
+            verify_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@value='Verify']")))
+            self._scroll_into_view_and_click(verify_button)
+        except (NoSuchElementException, ElementNotInteractableException, TimeoutException) as e:
             logger.error(f"Error clicking verify button: {e}")
             raise Exception(f"Failed while verifying OTP: {e}")
 
@@ -133,55 +143,47 @@ class NoIPUpdater:
             expiration_days = self.get_host_expiration_days(host)
             logger.info(f"expiration days: {expiration_days}")
             if expiration_days < 7:
-                logger.info(
-                    f"Host {host_name} is about to expire, confirming host..")
+                logger.info(f"Host {host_name} is about to expire, confirming host..")
                 host_button = self.get_host_button(host)
                 self.update_host(host_button, host_name)
                 logger.info(f"Host confirmed: {host_name}")
-                self.browser.save_screenshot(
-                    f"{SCREENSHOTS_PATH}/{host_name}-results.png"
-                )
+                self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/{host_name}-results.png")
             else:
-                logger.info(
-                    f"Host {host_name} is yet not due, remaining days to expire: {expiration_days}"
-                )
+                logger.info(f"Host {host_name} is yet not due, remaining days to expire: {expiration_days}")
 
     def update_host(self, host_button, host_name):
         logger.info(f"Updating {host_name}")
-        host_button.click()
-        time.sleep(1)
         try:
-            upgrade_element = self.browser.find_element(
-                By.XPATH, "//h2[@class='big']")
-            intervention = upgrade_element.text == "Upgrade Now"
-        except NoSuchElementException:
-            intervention = False
-        except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
-            intervention = False  # Assume no intervention needed on unexpected errors
+            self._scroll_into_view_and_click(host_button)
+            time.sleep(1)
+            try:
+                upgrade_element = self.browser.find_element(By.XPATH, "//h2[@class='big']")
+                intervention = upgrade_element.text == "Upgrade Now"
+            except NoSuchElementException:
+                intervention = False
+            except Exception as e:
+                logger.error(f"An unexpected error occurred: {e}")
+                intervention = False  
 
-        if intervention:
-            raise Exception(
-                f"Manual intervention required for host {host_name}. Upgrade text detected."
-            )
-        self.browser.save_screenshot(
-            f"{SCREENSHOTS_PATH}/{host_name}_success.png")
+            if intervention:
+                raise Exception(f"Manual intervention required for host {host_name}. Upgrade text detected.")
+            self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/{host_name}_success.png")
+        except Exception as e:
+            logger.error(f"Error when updating host {host_name}: {e}")
+            raise
 
     def get_host_expiration_days(self, host):
         try:
             host_remaining_days = host.find_element(
                 By.XPATH,
-                ".//a[contains(@class, 'no-link-style') and contains(@class, 'popover-info')]",
+                ".//a[contains(@class, 'no-link-style') and contains(@class, 'popover-info')]"
             ).get_attribute("data-original-title")
         except NoSuchElementException:
-            logger.warning(
-                "Could not find expiration days element. Assuming host is expired or element has changed.")
+            logger.warning("Could not find expiration days element. Assuming host is expired or element has changed.")
             return 0
         regex_match = re.search(r"\d+", host_remaining_days)
         if regex_match is None:
-            raise Exception(
-                "Expiration days label does not match the expected pattern"
-            )
+            raise Exception("Expiration days label does not match the expected pattern")
         expiration_days = int(regex_match.group(0))
         return expiration_days
 
@@ -190,12 +192,12 @@ class NoIPUpdater:
 
     def get_host_button(self, host):
         return host.find_element(
-            By.XPATH, ".//following-sibling::td[contains(@class, 'text-right-md')]/button[contains(@class, 'btn-success')]"
+            By.XPATH,
+            ".//following-sibling::td[contains(@class, 'text-right-md')]/button[contains(@class, 'btn-success')]"
         )
 
     def get_hosts(self) -> list:
-        host_tds = self.browser.find_elements(
-            By.XPATH, '//td[@data-title="Host"]')
+        host_tds = self.browser.find_elements(By.XPATH, '//td[@data-title="Host"]')
         if len(host_tds) == 0:
             with open(f"{SCREENSHOTS_PATH}/page.html", "w") as f:
                 f.write(self.browser.page_source)
@@ -229,7 +231,6 @@ if __name__ == "__main__":
                         default=False, required=False)
     args = vars(parser.parse_args())
 
-    # Set debug level
     logger.setLevel(logging.DEBUG if args["debug"] else logging.INFO)
 
     NoIPUpdater(
@@ -238,3 +239,4 @@ if __name__ == "__main__":
         args["totp_secret"],
         args["https_proxy"],
     ).run()
+
