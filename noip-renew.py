@@ -62,6 +62,8 @@ class NoIPUpdater:
         try:
             ele_usr.send_keys(self.username)
             ele_pwd.send_keys(self.password)
+            self.browser.find_element(
+                By.XPATH, "//*[@id='clogs-captcha-button']")[0].click()
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(
                 f"Error filling credentials: {e}, element: {ele_usr or ele_pwd}")
@@ -95,7 +97,7 @@ class NoIPUpdater:
             raise Exception(f"Failed while filling OTP: {e}")
         try:
             self.browser.find_element(
-                By.XPATH, "//input[@value='Verify']").click()
+                By.XPATH, "//input*[@value='Verify']")[0].click()
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(f"Error clicking verify button: {e}")
             raise Exception(f"Failed while verifying OTP: {e}")
