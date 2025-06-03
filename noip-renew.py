@@ -78,7 +78,7 @@ class NoIPUpdater:
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(f"Error clicking captcha button: {e}")
             raise Exception(f"Failed while trying to solve captcha: {e}")
-
+          
     def _fill_otp(self):
         logger.info("Filling OTP...")
         if logger.level == logging.DEBUG:
