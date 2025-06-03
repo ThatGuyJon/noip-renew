@@ -62,7 +62,6 @@ class NoIPUpdater:
         try:
             ele_usr.send_keys(self.username)
             ele_pwd.send_keys(self.password)
-          self.browser.find_element(By.ID, "clogs-captcha-button").click()
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(
                 f"Error filling credentials: {e}, element: {ele_usr or ele_pwd}")
@@ -78,7 +77,7 @@ class NoIPUpdater:
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(f"Error clicking captcha button: {e}")
             raise Exception(f"Failed while trying to solve captcha: {e}")
-          
+
     def _fill_otp(self):
         logger.info("Filling OTP...")
         if logger.level == logging.DEBUG:
@@ -88,7 +87,7 @@ class NoIPUpdater:
             for pos in range(OTP_LENGTH):
                 otp_elem = self.browser.find_element(
                     By.XPATH,
-                    '//*[@id="totp-input"]/input' + str(pos + 1),  # Corrected the index here
+                    '//*[@id="totp-input"]/input' + str([pos + 1]),
                 )
                 otp_elem.send_keys(otp[pos])
         except (NoSuchElementException, ElementNotInteractableException) as e:
@@ -109,7 +108,7 @@ class NoIPUpdater:
 
         logger.info("Logging in...")
         self._fill_credentials()
-        #self._solve_captcha()
+        self._solve_captcha()
         self._fill_otp()
 
         if logger.level == logging.DEBUG:
