@@ -108,7 +108,7 @@ class NoIPUpdater:
 
         logger.info("Logging in...")
         self._fill_credentials()
-        self._solve_captcha()
+        #self._solve_captcha()
         self._fill_otp()
 
         if logger.level == logging.DEBUG:
