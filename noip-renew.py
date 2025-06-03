@@ -62,6 +62,7 @@ class NoIPUpdater:
         try:
             ele_usr.send_keys(self.username)
             ele_pwd.send_keys(self.password)
+          self.browser.find_element(By.ID, "clogs-captcha-button").click()
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(
                 f"Error filling credentials: {e}, element: {ele_usr or ele_pwd}")
