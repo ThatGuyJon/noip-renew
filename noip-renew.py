@@ -84,29 +84,21 @@ class NoIPUpdater:
             self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/otp_screen.png")
         otp = pyotp.TOTP(self.totp_secret).now()
         try:
-            # Fill the first OTP character at the 'firstInput' element
-            first_input_elem = self.browser.find_element(By.XPATH, '//*[@id="firstInput"]')
-            first_input_elem.send_keys(otp[0])
-
-            # Fill the remaining OTP characters starting from input[2]
-            for pos in range(1, OTP_LENGTH):
+            for pos in range(OTP_LENGTH):
                 otp_elem = self.browser.find_element(
-                By.XPATH,
-                f'//*[@id="totp-input"]/input[{pos + 1}]'  # pos+1 since indexing starts at 2 here
-            )
-            otp_elem.send_keys(otp[pos])
-
+                    By.XPATH,
+                    '//*[@id="totp-input"]/input[' + str(pos + 1) + ']'  # Corrected XPath
+                )
+                otp_elem.send_keys(otp[pos])
         except (NoSuchElementException, ElementNotInteractableException) as e:
-            logger.error(f"Error filling OTP code: {e}, position: {pos if 'pos' in locals() else 0}")
+            logger.error(f"Error filling OTP code: {e}, position: {pos}")
             raise Exception(f"Failed while filling OTP: {e}")
-    
         try:
             self.browser.find_element(
                 By.XPATH, "//input[@value='Verify']").click()
         except (NoSuchElementException, ElementNotInteractableException) as e:
             logger.error(f"Error clicking verify button: {e}")
             raise Exception(f"Failed while verifying OTP: {e}")
-
 
     def login(self):
         logger.info(f"Opening {LOGIN_URL} ...")
