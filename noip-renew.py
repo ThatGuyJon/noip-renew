@@ -88,7 +88,7 @@ class NoIPUpdater:
             for pos in range(OTP_LENGTH):
                 otp_elem = self.browser.find_element(
                     By.XPATH,
-                    '//*[@id="totp-input"]/input' + str([pos + 1]),
+                    '//*[@id="totp-input"]/input' + str(pos + 1),  # Corrected the index here
                 )
                 otp_elem.send_keys(otp[pos])
         except (NoSuchElementException, ElementNotInteractableException) as e:
