@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_USERNAME: kirbah
+  DOCKER_USERNAME: thatguyjohn
   DOCKER_IMAGE: noip-renew
 
 jobs:
