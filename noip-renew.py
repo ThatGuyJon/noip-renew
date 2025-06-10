@@ -197,12 +197,27 @@ class NoIPUpdater:
         )
 
     def get_hosts(self) -> list:
-        host_tds = self.browser.find_elements(By.XPATH, '//td[@data-title="Host"]')
-        if len(host_tds) == 0:
-            with open(f"{SCREENSHOTS_PATH}/page.html", "w") as f:
-                f.write(self.browser.page_source)
-            raise Exception("No hosts or host table rows not found")
-        return host_tds
+        try:
+            # Wait for the presence and visibility of the elements
+            host_tds = WebDriverWait(self.browser, 30).until(
+                EC.visibility_of_all_elements_located((By.XPATH, '//td[@data-title="Host"]'))
+            )
+
+            if not host_tds:  # Check if the list is empty
+                with open(f"{SCREENSHOTS_PATH}/page.html", "w") as f:
+                    f.write(self.browser.page_source)
+                raise Exception("No hosts or host table rows not found")
+
+            return host_tds
+
+        except TimeoutException as e:
+            logger.error(f"Timed out waiting for host elements: {e}")
+            self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/timeout_hosts.png")
+            raise Exception("Timed out waiting for host elements to load") from e
+        except Exception as e:
+            logger.error(f"An error occurred while getting hosts: {e}")
+            self.browser.save_screenshot(f"{SCREENSHOTS_PATH}/get_hosts_error.png")
+            raise
 
     def run(self) -> int:
         return_code = 0
@@ -239,4 +254,3 @@ if __name__ == "__main__":
         args["totp_secret"],
         args["https_proxy"],
     ).run()
-
