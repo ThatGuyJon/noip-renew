@@ -135,7 +135,7 @@ class NoIPUpdater:
 
     def update_hosts(self):
         self.open_hosts_page()
-        time.sleep(3)
+        time.sleep(10)
 
         hosts = self.get_hosts()
         for host in hosts:
